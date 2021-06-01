@@ -36,6 +36,7 @@ class KBHit:
     def __init__(self):
         '''Creates a KBHit object that you can call to do various keyboard things.
         '''
+        self.available = True
 
         if os.name == 'nt':
             pass
@@ -77,12 +78,12 @@ class KBHit:
             return msvcrt.getch().decode('utf-8')
 
         else:
-            return sys.stdin.read(1)
-            #if keypress within certain time limit
-            # if time.time()-current_time <= 0.5:
-            #     return sys.stdin.read(1)
-            # else:
-            #     return
+            #FIND WAY TO ONLY READ FIRST INP
+            char = sys.stdin.read(1)
+            return char
+
+    def reset(self):
+        self.available = True
 
 
     def kbhit(self):

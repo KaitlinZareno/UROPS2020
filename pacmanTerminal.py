@@ -48,57 +48,52 @@ def keypress():
 	c = 0
 	initialized_current = False
 	kb = KBHit()
+	time.sleep(0.05)
+	onePressed = False
+	key_inp = ""
 
 	while True:
 		if not game_over:		 
-			#print('outer if')
 
+			#initialize cuurrent for timer
 			if not initialized_current:
 				current = time.clock()
 				initializedCurrent = True
 
+			#if press key within time limit
 			if current - start <= 2.2:
-				#print("inner if")
-				if available and kb.kbhit():
-
+				if available:
 					#timeout if user doesn't input button -- tries to unblock getch process
+					if kb.kbhit():
 
-					char = kb.getch()
+						char = kb.getch()
 
-					print("pressed: ", char)
+						print("pressed: ", char, available)
 
-					if ord(char) == 27: # ESC
-						print(key_dict)
-						break
+						if ord(char) == 27: # ESC
+							print(key_dict)
+							break
 
-					key_dict[c] = char
-					#available = False
-					#print(char)
-					#print(c, key_dict[c])
-					available = False
-					current = time.time()
-
-				#if havent scheduled key in dictionary, if haven't assigned -- key blocking
-				# else:
-				# 	if not key_dict[c]:
-				# 		key_dict[c] = ""
-
+						#update dictionary, block keypresses for the rest of time period
+						key_dict[c] = char
+						available = False
 			else:
-				if c not in key_dict:
-						key_dict[c] = ""
+				#if no key was pressed during the time period, set equal to null
+				if not key_inp:
+					key_dict[c] = ""
+				else:
+					key_dict[c] = key_inp
 
 				print(c,key_dict[c])
 				print("CHANGE", c)
+
+				#reset counter and timer
 				c+=1
 				available = True
 				start = time.clock()
 				initialized_current = False
+				kb.reset()
 
-			# print(char)
-			# #print(c, key_dict[c])
-			# c+=1
-			# start = time.clock()
-			# available = True
 		else:
 			#print(key_dict)
 			break
