@@ -17,6 +17,7 @@ GNU General Public License for more details.
 '''
 
 import os
+import time
 
 # Windows
 if os.name == 'nt':
@@ -77,27 +78,11 @@ class KBHit:
 
         else:
             return sys.stdin.read(1)
-
-
-    def getarrow(self):
-        ''' Returns an arrow-key code after kbhit() has been called. Codes are
-        0 : up
-        1 : right
-        2 : down
-        3 : left
-        Should not be called in the same program as getch().
-        '''
-
-        if os.name == 'nt':
-            msvcrt.getch() # skip 0xE0
-            c = msvcrt.getch()
-            vals = [72, 77, 80, 75]
-
-        else:
-            c = sys.stdin.read(3)[2]
-            vals = [65, 67, 66, 68]
-
-        return vals.index(ord(c.decode('utf-8')))
+            #if keypress within certain time limit
+            # if time.time()-current_time <= 0.5:
+            #     return sys.stdin.read(1)
+            # else:
+            #     return
 
 
     def kbhit(self):
@@ -111,19 +96,3 @@ class KBHit:
             return dr != []
 
 
-# Test    
-if __name__ == "__main__":
-
-    kb = KBHit()
-
-    print('Hit any key, or ESC to exit')
-
-    while True:
-
-        if kb.kbhit():
-            c = kb.getch()
-            if ord(c) == 27: # ESC
-                break
-            print(c)
-
-    kb.set_normal_term()

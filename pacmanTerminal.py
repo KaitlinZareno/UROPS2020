@@ -9,111 +9,114 @@ from keypressTester import KBHit
 
 global key_dict 
 key_dict = {}
+condition = threading.Condition()
 game_over = False
-end = False
+global PATH
+PATH = "/home/kaitlinzareno/Desktop/UROPS2021/"
 
 def start():
+	global game_over 
 	print("starting in 1 second")
 	time.sleep(1)
 
 	keyThread = threading.Thread(target = keypress)
-	#playThread = threading.Thread(target = playback)
+	playThread = threading.Thread(target = playback)
 
 	keyThread.start()
-	#playThread.start()
+	playThread.start()
+
+	if game_over:
+		make_csv()
+		sys.exit()
 
 
 def playback():
-	os.system('python pacman.py --replay recorded-game-0')
+	global game_over
 
-	if end:
-		sys.exit()
-	#game has finished executing, do not get any more keypresses
-	game_over = True
-	print("game over")
+	if not game_over:
+		os.system('python pacman.py --replay recorded-game-0')
+
+		#game has finished executing, do not get any more keypresses
+		game_over = True
+		print("game over") 
+
 
 def keypress():
-
-    kb = KBHit()
-    start = time.clock()
-    available = True
-    c = 0
-
-    #print('Hit any key, or ESC to exit')
-
-    while True:
-    	current = time.clock()
-    	key_dict[c] = ""
-
-    	if current - start >= 1:
-    		if kb.kbhit() and available:
-			    char = kb.getch()
-			    key_dict[c] = char
-			    available = False
-
-			    if ord(char) == 27: # ESC
-			        break
-    		#print(c, key_dict[c])
-
-        else:
-			c+=1
-			start = time.clock()
-			available = True
-
-
-
-    kb.set_normal_term()
-
-
-
-def get_keypress():
-	print("obtain keypress")
-	start = time.time()
+	global game_over
+	start = time.clock()
 	available = True
 	c = 0
+	initialized_current = False
+	kb = KBHit()
 
 	while True:
-		#if it's been within 1 second
-		current = time.time()
+		if not game_over:		 
+			#print('outer if')
 
-		if current - start <= 1:
+			if not initialized_current:
+				current = time.clock()
+				initializedCurrent = True
 
-			# if no input within a certain time frame run again
-			if time.time()-current > 0.49:
-				continue
+			if current - start <= 2.2:
+				#print("inner if")
+				if available and kb.kbhit():
 
-			char = getch()
+					#timeout if user doesn't input button -- tries to unblock getch process
 
-			#add 1 char to dictionary
-			if char:
-				if available:
-					if char == "-":
-						end = True
-						print("ending")
-						sys.exit()
+					char = kb.getch()
 
-					available = False
+					print("pressed: ", char)
+
+					if ord(char) == 27: # ESC
+						print(key_dict)
+						break
+
 					key_dict[c] = char
+					#available = False
+					#print(char)
+					#print(c, key_dict[c])
+					available = False
+					current = time.time()
 
+				#if havent scheduled key in dictionary, if haven't assigned -- key blocking
+				# else:
+				# 	if not key_dict[c]:
+				# 		key_dict[c] = ""
+
+			else:
+				if c not in key_dict:
+						key_dict[c] = ""
+
+				print(c,key_dict[c])
+				print("CHANGE", c)
+				c+=1
+				available = True
+				start = time.clock()
+				initialized_current = False
+
+			# print(char)
+			# #print(c, key_dict[c])
+			# c+=1
+			# start = time.clock()
+			# available = True
 		else:
-			key_dict[c] = " "
-			print("end state")
-			print(c, key_dict[c])
-			c+=1
-			start = time.time()
-			available = True
+			#print(key_dict)
+			break
 
+	kb.set_normal_term()
 
+def make_csv():
+		print("creating csv")
+		#write user inp to csv files 
+		with open('state_action.csv') as r, open('merged.csv', 'w') as file:
+			reader = csv.reader(r)
+			writer = csv.writer(file)
+			x = 0
 
-def getch():
-	fd = sys.stdin.fileno()
-	old = termios.tcgetattr(fd)
-	try:
-		tty.setraw(sys.stdin.fileno())
-		ch = sys.stdin.read(1)
-	finally:
-		termios.tcsetattr(fd,termios.TCSADRAIN,old)
-	return ch
+	        for row in reader:
+	        	#for every row, append user inp (make new column)
+	            writer.writerow(row + [key_dict[x]])
+	            x+=1
 
 
 
