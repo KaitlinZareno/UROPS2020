@@ -79,11 +79,8 @@ class KBHit:
 
         else:
             #FIND WAY TO ONLY READ FIRST INP
-            char = sys.stdin.read(1)
+            char = sys.stdin.read(1) #should only read 1 input
             return char
-
-    def reset(self):
-        self.available = True
 
 
     def kbhit(self):

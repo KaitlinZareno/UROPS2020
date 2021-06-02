@@ -1,8 +1,5 @@
-#getch adapted from https://www.jonwitts.co.uk/archives/896
 
 import sys,termios, tty, os, time
-import multiprocessing as mp
-from multiprocessing import Process, Queue
 import threading
 from threading import Thread
 from keypressTester import KBHit
@@ -10,7 +7,6 @@ import csv
 
 global key_dict 
 key_dict = {}
-condition = threading.Condition()
 game_over = False
 global PATH
 PATH = "/home/kaitlinzareno/Desktop/UROPS2021/"
@@ -26,11 +22,6 @@ def start():
 	keyThread.start()
 	playThread.start()
 
-	if game_over:
-		print("making csv")
-		make_csv()
-		sys.exit()
-
 
 def playback():
 	global game_over
@@ -44,15 +35,16 @@ def playback():
 
 
 def keypress():
+	#Initialize variables
 	global game_over
 	start = time.clock()
 	available = True
-	c = 0
 	initialized_current = False
+	c = 0
 	kb = KBHit()
+
+	#start code
 	time.sleep(0.05)
-	onePressed = False
-	key_inp = ""
 
 	while True:
 		if not game_over:		 
@@ -63,14 +55,15 @@ def keypress():
 				initializedCurrent = True
 
 			#if press key within time limit
-			if current - start <= 2.2:
+			if current - start <= 1.2:
+				#if a key hasn't been obtained for the current time interval/state -- not working?
 				if available:
-					#timeout if user doesn't input button -- tries to unblock getch process
+					
+					#if a key is pressed, obtain key 
 					if kb.kbhit():
-
 						char = kb.getch()
 
-						print("pressed: ", char, available)
+						#print("pressed: ", char, available)
 
 						if ord(char) == 27: # ESC
 							print(key_dict)
@@ -79,22 +72,25 @@ def keypress():
 						#update dictionary, block keypresses for the rest of time period
 						key_dict[c] = char
 						available = False
+
+			#time limit is up, move to next state
 			else:
 				#if no key was pressed during the time period, set equal to null
 				if not c in key_dict:
-					key_dict[c] = ""
+					key_dict[c] = "-"
 
 				print(c,key_dict[c])
-				print("CHANGE", c)
+				# print("CHANGE", c)
 
 				#reset counter and timer
 				c+=1
 				available = True
 				start = time.clock()
 				initialized_current = False
+				kb = KBHit()
 
+		#if game over make csv
 		else:
-			#make csv
 			print(key_dict)
 			make_csv()
 			break
@@ -103,7 +99,6 @@ def keypress():
 
 def make_csv():
 		print("creating csv")
-		#write user inp to csv files 
 
 		writer = csv.writer(open('merged.csv', 'w'))
 		x = 0

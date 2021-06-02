@@ -293,7 +293,7 @@ class ClassicGameRules:
         game.gameOver = True
 
     def lose( self, state, game ):
-        if not self.quiet: print "Pacman died! Score: %d" % state.data.score
+        # if not self.quiet: print "Pacman died! Score: %d" % state.data.score
         game.gameOver = True
 
     def getProgress(self, game):
@@ -457,6 +457,7 @@ class GhostRules:
 #############################
 # FRAMEWORK TO START A GAME #
 #############################
+global c 
 
 def default(str):
     return str + ' [Default: %default]'
@@ -609,21 +610,48 @@ def loadAgent(pacman, nographics):
 
 def replayGame( layout, actions, display ):
     import pacmanAgents, ghostAgents
+    import csv 
     rules = ClassicGameRules()
     agents = [pacmanAgents.GreedyAgent()] + [ghostAgents.RandomGhost(i+1) for i in range(layout.getNumGhosts())]
     game = rules.newGame( layout, agents[0], agents[1:], display )
     state = game.state
     display.initialize(state.data)
 
+    c = 0
+    psa = {}
+    prevState = None
+
     for action in actions:
             # Execute the action
         state = state.generateSuccessor( *action )
         # Change the display
         display.update( state.data )
+
         # Allow for game specific conditions (winning, losing, etc.)
         rules.process(state, game)
+        #print(state)
+        #print(c)
+
+        if c == 0:
+            prevState = state
+        #after pacman moves, pause 
+        if c%2 == 0 and c != 0:
+            psa[c] = (prevState,action[1])
+            #print(prevState)
+            #print(action)
+            time.sleep(1)
+            #record state we respond to
+            prevState = state 
+        c+=1;
 
     display.finish()
+
+    with open('state_action.csv', 'w') as file:
+        writer = csv.writer(file)
+        for s in psa:
+            #print(psa[s][0])
+            #correct format of state in terminal, gets messed up when trying to write it to file
+            writer.writerow([psa[s][0], psa[s][1]])
 
 def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30 ):
     import __main__
