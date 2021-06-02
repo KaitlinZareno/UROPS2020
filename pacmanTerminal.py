@@ -6,6 +6,7 @@ from multiprocessing import Process, Queue
 import threading
 from threading import Thread
 from keypressTester import KBHit
+import csv 
 
 global key_dict 
 key_dict = {}
@@ -26,6 +27,7 @@ def start():
 	playThread.start()
 
 	if game_over:
+		print("making csv")
 		make_csv()
 		sys.exit()
 
@@ -79,10 +81,8 @@ def keypress():
 						available = False
 			else:
 				#if no key was pressed during the time period, set equal to null
-				if not key_inp:
+				if not c in key_dict:
 					key_dict[c] = ""
-				else:
-					key_dict[c] = key_inp
 
 				print(c,key_dict[c])
 				print("CHANGE", c)
@@ -92,10 +92,11 @@ def keypress():
 				available = True
 				start = time.clock()
 				initialized_current = False
-				kb.reset()
 
 		else:
-			#print(key_dict)
+			#make csv
+			print(key_dict)
+			make_csv()
 			break
 
 	kb.set_normal_term()
@@ -103,15 +104,14 @@ def keypress():
 def make_csv():
 		print("creating csv")
 		#write user inp to csv files 
-		with open('state_action.csv') as r, open('merged.csv', 'w') as file:
-			reader = csv.reader(r)
-			writer = csv.writer(file)
-			x = 0
 
-	        for row in reader:
-	        	#for every row, append user inp (make new column)
-	            writer.writerow(row + [key_dict[x]])
-	            x+=1
+		writer = csv.writer(open('merged.csv', 'w'))
+		x = 0
+
+		for row in  csv.reader(open('state_action.csv', 'r')):
+        	#for every row, append user inp (make new column)
+			writer.writerow(row + [key_dict[x]])
+			x+=1
 
 
 
