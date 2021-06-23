@@ -110,7 +110,7 @@ def make_csv():
 		x+=1
 
 def make_pkl():
-	print("creating pickle")
+	print("creating pickle and directory")
 
 	nested_list = []
 	x = 0
@@ -122,6 +122,12 @@ def make_pkl():
 		x+=1
 
 	print(nested_list)
+
+	try:
+		os.mkdir("./demo_data")
+		os.chdir("./demo_data")
+	except OSError:
+		print ("Creation of the directory failed")
 
 	outfile = open("./NEW_demo_data.pkl", "wb")
 	pickle.dump(nested_list, outfile)
