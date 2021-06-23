@@ -4,6 +4,7 @@ import threading
 from threading import Thread
 from keypressTester import KBHit
 import csv 
+import pickle
 
 global key_dict 
 key_dict = {}
@@ -77,7 +78,7 @@ def keypress():
 			else:
 				#if no key was pressed during the time period, set equal to null
 				if not c in key_dict:
-					key_dict[c] = "-"
+					key_dict[c] = ""
 
 				print(c,key_dict[c])
 				# print("CHANGE", c)
@@ -89,25 +90,42 @@ def keypress():
 				initialized_current = False
 				kb = KBHit()
 
-		#if game over make csv
+		#if game over make csv or pkl file
 		else:
-			print(key_dict)
-			make_csv()
+			# print(key_dict)
+			make_pkl()
 			break
 
 	kb.set_normal_term()
 
 def make_csv():
-		print("creating csv")
+	print("creating csv")
 
-		writer = csv.writer(open('merged.csv', 'w'))
-		x = 0
+	writer = csv.writer(open('merged.csv', 'w'))
+	x = 0
 
-		for row in  csv.reader(open('state_action.csv', 'r')):
-        	#for every row, append user inp (make new column)
-			writer.writerow(row + [key_dict[x]])
-			x+=1
+	for row in  csv.reader(open('state_action.csv', 'r')):
+    	#for every row, append user inp (make new column)
+		writer.writerow(row + [key_dict[x]])
+		x+=1
 
+def make_pkl():
+	print("creating pickle")
+
+	nested_list = []
+	x = 0
+
+	for row in  csv.reader(open('state_action.csv', 'r')):
+    	#for every row, append user inp (make new column)
+		curr = row + [key_dict[x]]
+		nested_list.append(curr)
+		x+=1
+
+	print(nested_list)
+
+	outfile = open("./NEW_demo_data.pkl", "wb")
+	pickle.dump(nested_list, outfile)
+	outfile.close()
 
 
 
