@@ -47,10 +47,19 @@ from util import nearestPoint
 from util import manhattanDistance
 import util, layout
 import sys, types, time, random, os
+from tqdm import tqdm
 
 ###################################################
 # YOUR INTERFACE TO THE PACMAN WORLD: A GameState #
 ###################################################
+
+# global recorded_games_list
+# recorded_games_list = []
+
+global GSTATE
+GSTATE = 0
+
+# recorded_games_counter = 0
 
 class GameState:
     """
@@ -289,7 +298,7 @@ class ClassicGameRules:
         if state.isLose(): self.lose(state, game)
 
     def win( self, state, game ):
-        if not self.quiet: print "Pacman emerges victorious! Score: %d" % state.data.score
+        #if not self.quiet: print "Pacman emerges victorious! Score: %d" % state.data.score
         game.gameOver = True
 
     def lose( self, state, game ):
@@ -574,7 +583,7 @@ def readCommand( argv ):
 
     # Special case: recorded games don't use the runGames method or args structure
     if options.gameToReplay != None:
-        print 'Replaying recorded game %s.' % options.gameToReplay
+        #print 'Replaying recorded game %s.' % options.gameToReplay
         import cPickle
         f = open(options.gameToReplay)
         try: recorded = cPickle.load(f)
@@ -611,6 +620,9 @@ def loadAgent(pacman, nographics):
 def replayGame( layout, actions, display ):
     import pacmanAgents, ghostAgents
     import csv 
+    
+    global GSTATE
+
     rules = ClassicGameRules()
     agents = [pacmanAgents.GreedyAgent()] + [ghostAgents.RandomGhost(i+1) for i in range(layout.getNumGhosts())]
     game = rules.newGame( layout, agents[0], agents[1:], display )
@@ -622,27 +634,29 @@ def replayGame( layout, actions, display ):
     prevState = None
 
     for action in actions:
-            # Execute the action
+
+        # Execute the action
         state = state.generateSuccessor( *action )
         # Change the display
         display.update( state.data )
 
         # Allow for game specific conditions (winning, losing, etc.)
         rules.process(state, game)
-        #print(state)
-        #print(c)
 
         if c == 0:
             prevState = state
         #after pacman moves, pause 
-        if c%2 == 0 and c != 0:
+        if c%2 == 0 :
             psa[c] = (prevState,action[1])
-            #print(prevState)
-            #print(action)
+
             time.sleep(1)
             #record state we respond to
-            prevState = state 
-        c+=1;
+            prevState = state
+            GSTATE += 1
+
+            #if flask, get here
+
+        c+=1
 
     display.finish()
 
@@ -653,6 +667,8 @@ def replayGame( layout, actions, display ):
             #correct format of state in terminal, gets messed up when trying to write it to file
             writer.writerow([psa[s][0], psa[s][1]])
 
+
+
 def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30 ):
     import __main__
     __main__.__dict__['_display'] = display
@@ -660,8 +676,8 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
     rules = ClassicGameRules(timeout)
     games = []
 
-    for i in range( numGames ):
-        print(i)
+    for i in tqdm(range( numGames )):
+        #print(i)
         beQuiet = i < numTraining
         if beQuiet:
                 # Suppress output and graphics
@@ -675,13 +691,20 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
         game.run()
         if not beQuiet: games.append(game)
 
+        #global record dict to store game state pairs?? 
         if record:
             import time, cPickle
-            fname = ('recorded-game-%d' % (i + 1)) +  '-'.join([str(t) for t in time.localtime()[1:6]])
+            global recorded_games_list
+
+            fname = ('recorded-game-%d' % (i + 1))
             f = file(fname, 'w')
             components = {'layout': layout, 'actions': game.moveHistory}
             cPickle.dump(components, f)
             f.close()
+
+            #NEW
+            # recorded_games_list.append(components)
+
 
     if (numGames-numTraining) > 0:
         scores = [game.state.getScore() for game in games]
@@ -705,7 +728,9 @@ if __name__ == '__main__':
 
     > python pacman.py --help
     """
-    args = readCommand( sys.argv[1:] ) # Get game components based on input
+    args = readCommand( sys.argv[1:] ) 
+
+    #print(args)# Get game components based on input
     runGames( **args )
 
     # import cProfile
