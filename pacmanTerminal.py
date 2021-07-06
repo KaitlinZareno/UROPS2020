@@ -7,15 +7,16 @@ from keypressTester import KBHit
 import csv 
 import pickle
 
-global key_dict, over, game_num, started
+global key_dict, over, game_num, started, path
+path = './recorded_games2/recorded-game-'
+
 key_dict = {}
 over = False
 game_num = ""
 started = False
 
 
-
-def start(rec_game):
+def start(a):
 	global over, game_num
 	print("starting in 1 second")
 	time.sleep(1)
@@ -24,11 +25,11 @@ def start(rec_game):
 	keyThread.start()
 
 	#playback needs to be in main thread
-	playback(rec_game)
+	playback(a['gameNumber'])
 
 
 def playback(rec_game):
-	global over, game_num
+	global over, game_num, path
 	import pacman
 
 	started = True
@@ -38,7 +39,7 @@ def playback(rec_game):
 		#f = 'python pacman.py --replay ./recorded_games/recorded-game-' + game_num
 		import cPickle
 
-		gtr = './recorded_games2/recorded-game-' + game_num
+		gtr = path + game_num
         f = open(gtr)
         try: recorded = cPickle.load(f)
         finally: f.close()
@@ -136,9 +137,9 @@ def make_pkl():
 		x+=1
 
 	try:
-		if not os.path.isdir("./demo_data2"):
-			os.mkdir("./demo_data2")
-		os.chdir("./demo_data2")
+		if not os.path.isdir("./demo_data"):
+			os.mkdir("./demo_data")
+		os.chdir("./demo_data")
 	except OSError:
 		print ("Creation of the directory failed")
 
@@ -161,15 +162,22 @@ def getCommand( argv ):
 
 	p.add_option('-g', '--gameNumber', dest='gameNumber', type='int',
                       help='number of recorded game file', default=0)
+	p.add_option('-p', '--filePath', dest='filePath', type='str',
+                      help='path of recorded game', default='')
+
 
 	opt, other = p.parse_args(argv)
 
 	if len(other) != 0:
 		raise Exception('Command line input not understood: ' + str(other))
-	arg = []
+	arg = {}
 
-	arg.append(opt.gameNumber)
+	arg['gameNumber'] = opt.gameNumber
 
+	if opt.filePath:
+		arg['filePath'] = opt.filePath
+
+	print(arg)
 	return arg
 
 
@@ -178,4 +186,4 @@ if __name__ == "__main__":
 	global arg
 	arg = getCommand( sys.argv[1:] )
 
-	start(arg[0])
+	start(arg)
