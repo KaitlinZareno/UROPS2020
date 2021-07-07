@@ -56,8 +56,9 @@ from tqdm import tqdm
 # global recorded_games_list
 # recorded_games_list = []
 
-global GSTATE
+global GSTATE, PSA
 GSTATE = 0
+PSA = {}
 
 # recorded_games_counter = 0
 
@@ -621,7 +622,7 @@ def replayGame( layout, actions, display ):
     import pacmanAgents, ghostAgents
     import csv 
     
-    global GSTATE
+    global GSTATE, PSA
 
     rules = ClassicGameRules()
     agents = [pacmanAgents.GreedyAgent()] + [ghostAgents.RandomGhost(i+1) for i in range(layout.getNumGhosts())]
@@ -630,8 +631,7 @@ def replayGame( layout, actions, display ):
     display.initialize(state.data)
 
     c = 0
-    psa = {}
-    prevState = None
+    prevState = state
 
     for action in actions:
 
@@ -643,12 +643,10 @@ def replayGame( layout, actions, display ):
         # Allow for game specific conditions (winning, losing, etc.)
         rules.process(state, game)
 
-        if c == 0:
-            prevState = state
         #after pacman moves, pause 
         if c%2 == 0 :
-            psa[c] = (prevState,action[1])
-
+            PSA[c/2] = (prevState.__str__(),action[1])
+            #print(prevState.__str__())
             time.sleep(1)
             #record state we respond to
             prevState = state
@@ -660,12 +658,16 @@ def replayGame( layout, actions, display ):
 
     display.finish()
 
-    with open('state_action.csv', 'w') as file:
-        writer = csv.writer(file)
-        for s in psa:
-            #print(psa[s][0])
-            #correct format of state in terminal, gets messed up when trying to write it to file
-            writer.writerow([psa[s][0], psa[s][1]])
+    # import pickle
+
+    # outfile = open("./state_action2.pkl", "wb")
+    # pickle.dump(psa, outfile)
+    # with open('state_action2.csv', 'w') as file:
+    #     writer = csv.writer(file)
+    #     for s in psa:
+    #         #print(psa[s][0])
+    #         #correct format of state in terminal, gets messed up when trying to write it to file
+    #         writer.writerow([psa[s][0], psa[s][1]])
 
 
 

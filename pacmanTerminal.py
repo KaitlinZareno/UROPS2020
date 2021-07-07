@@ -7,13 +7,14 @@ from keypressTester import KBHit
 import csv 
 import pickle
 
-global key_dict, over, game_num, started, path
-path = './recorded_games2/recorded-game-'
+global key_dict, over, game_num, started, path, curr
+path = './recorded_games/recorded-game-'
 
 key_dict = {}
 over = False
 game_num = ""
 started = False
+curr = 0
 
 
 def start(a):
@@ -58,10 +59,9 @@ def keypress():
 	#Initialize variables
 	# import pacmanTerminalConfig, pacmanTerminalUpdater
 	import pacman
-	global over, started
+	global over, started, curr
 
 	available = True
-	curr = 0
 	kb = KBHit()
 	currentState = 0
 
@@ -105,8 +105,8 @@ def keypress():
 
 		#if game over make csv or pkl file
 		else:
-			#make_pkl()
-			make_csv()
+			make_pkl()
+			#make_csv()
 			break
 
 	kb.set_normal_term()
@@ -125,25 +125,26 @@ def make_csv():
 		x+=1
 
 def make_pkl():
+	import pacman
+	global game_num, curr
 	print("creating pickle and directory")
 
 	nested_list = []
-	x = 0
 
-	for row in  csv.reader(open('state_action.csv', 'r')):
-    	#for every row, append user inp (make new column)
-		curr = row + [key_dict[x]]
+	for x in range(curr):
+		curr = [pacman.PSA[x][0]] + [pacman.PSA[x][1]] + [key_dict[x]]
+		#print(curr)
 		nested_list.append(curr)
-		x+=1
 
-	try:
-		if not os.path.isdir("./demo_data"):
-			os.mkdir("./demo_data")
-		os.chdir("./demo_data")
-	except OSError:
-		print ("Creation of the directory failed")
+	# try:
+	# 	if not os.path.isdir("./demo_data"):
+	# 		os.mkdir("./demo_data")
+	# 	os.chdir("./demo_data")
+	# except OSError:
+	# 	print ("Creation of the directory failed")
 
-	outfile = open("./NEW_demo_data.pkl", "wb")
+	tf = './pkl_data/merged_' + str(game_num) + ".pkl"
+	outfile = open(tf, "wb")
 	pickle.dump(nested_list, outfile)
 	outfile.close()
 
